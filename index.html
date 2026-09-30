@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Admission Form</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#10b981">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Student GR">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #10b981;
+    --green-dark: #047857;
+    --green-soft: #ecfdf5;
+    --red: #dc2626;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    background: #f3f4f6; color: var(--text);
+    min-height: 100vh; display: flex; justify-content: center; padding: 32px 16px;
+  }
+  .card {
+    background: #fff; width: 100%; max-width: 980px;
+    border-radius: 16px; padding: 32px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  }
+  h1 { font-size: 26px; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+
+  .section-title {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; font-size: 15px;
+    margin: 28px 0 16px; padding-bottom: 8px;
+    border-bottom: 2px solid #a7f3d0; position: relative;
+  }
+  .section-title::after {
+    content: ""; position: absolute; left: 0; bottom: -2px;
+    width: 64px; height: 2px; background: var(--green);
+  }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #374151; }
+  label .req { color: var(--red); margin-left: 3px; }
+
+  .field { position: relative; }
+  input, select {
+    width: 100%; height: 50px;
+    border: 2px solid var(--border); border-radius: 12px;
+    padding: 0 40px 0 16px;
+    font: inherit; font-size: 15px; color: var(--text);
+    background: #fff; outline: none;
+    transition: border-color .2s, background .2s, box-shadow .2s;
+    appearance: none; -webkit-appearance: none;
+  }
+  /* iOS/Safari: date inputs collapse with appearance:none */
+  input[type=date] { min-height: 50px; display: block; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23374151' stroke-width='2'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 16px center; cursor: pointer;
+  }
+  input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
+
+  .field.valid input, .field.valid select { border-color: var(--green); background-color: var(--green-soft); }
+  .field.invalid input, .field.invalid select { border-color: var(--red); background-color: #fef2f2; }
+  .tick {
+    position: absolute; right: 14px; top: 25px; transform: translateY(-50%);
+    color: var(--green-dark); font-weight: 700; pointer-events: none; display: none;
+  }
+  .field.valid .tick { display: block; }
+  .field.valid select ~ .tick, .field.valid input[type=date] ~ .tick { right: 38px; }
+
+  .msg { font-size: 12.5px; margin-top: 6px; min-height: 18px; }
+  .field.valid ~ .msg { color: var(--green-dark); }
+  .field.invalid ~ .msg { color: var(--red); }
+
+  .submit-wrap { display: flex; justify-content: center; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
+  button {
+    display: inline-flex; align-items: center; gap: 10px;
+    border: none; cursor: pointer; padding: 0 44px; height: 52px;
+    font: inherit; font-weight: 700; font-size: 15px; letter-spacing: .4px;
+    border-radius: 12px; transition: transform .15s, box-shadow .15s;
+  }
+  .btn-primary { background: linear-gradient(135deg, #10b981, #047857); color: #fff; box-shadow: 0 6px 16px rgba(4,120,87,.3); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(4,120,87,.35); }
+  .btn-reset { background: #fff; color: var(--text); border: 2px solid var(--border); }
+  .btn-reset:hover { border-color: var(--green); }
+  button:focus-visible { outline: 3px solid #a7f3d0; outline-offset: 2px; }
+
+  .success {
+    display: none; margin-top: 24px; padding: 16px;
+    background: var(--green-soft); border: 2px solid var(--green);
+    border-radius: 12px; color: var(--green-dark); font-weight: 600; text-align: center;
+  }
+  #lock { position: fixed; inset: 0; background: #f3f4f6; display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .lock-box { background: #fff; padding: 32px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.08); width: 100%; max-width: 380px; text-align: center; }
+  .lock-box h2 { margin-bottom: 8px; }
+  .lock-box p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .lock-box input { margin-bottom: 12px; text-align: center; }
+  .lock-box button { width: 100%; justify-content: center; padding: 0; }
+  #lockMsg { color: var(--red); font-size: 13px; margin-top: 10px; min-height: 18px; }
+</style>
+</head>
+<body>
+<div id="lock">
+  <div class="lock-box">
+    <h2>🔒 Teacher Login</h2>
+    <p>Data bharayla PIN taka.</p>
+    <input type="password" id="pinInput" placeholder="Enter PIN" autocomplete="current-password">
+    <button type="button" class="btn-primary" id="loginBtn">🔓 LOGIN</button>
+    <div id="lockMsg"></div>
+  </div>
+</div>
+<div class="card">
+  <h1>STUDENT GENERAL REGISTER FORM</h1>
+  <p class="sub">Fields marked <span style="color:var(--red)">*</span> are required.</p>
+
+  <form id="studentForm" novalidate>
+
+    <!-- Student details -->
+    <div class="section-title">🎓 Student Details</div>
+    <div class="grid">
+      <div>
+        <label for="admNo">🔢 Admission Number<span class="req">*</span></label>
+        <div class="field" data-type="admNo"><input type="text" id="admNo" placeholder="e.g. 2026/001"><span class="tick">✓</span></div>
+        <div class="msg"></div>
+      </div>
+
+      <div>
+        <label for="studentName">👤 Student Name<span class="req">*</span></label>
+        <div class="field" data-type="name"><input type="text" id="studentName" placeholder="Enter student's full name"><span class="tick">✓</span></div>
+        <div class="msg"></div>
+      </div>
+
+      <div>
+        <label for="dob">📅 Date of Birth<span class="req">*</span></label>
+        <div class="field" data-type="dob"><input type="date" id="dob"><span class="tick">✓</span></div>
+        <div class="msg"></div>
+      </div>
+    </div>
+
+    <!-- Caste details -->
+    <div class="section-title">📋 Caste Details</div>
+    <div class="grid">
+      <div>
+        <label for="caste">🏷️ Caste<span class="req">*</span></label>
+        <div class="field" data-type="caste"><input type="text" id="caste" placeholder="Enter caste"><span class="tick">✓</span></div>
+        <div class="msg"></div>
+      </div>
+
+      <div>
+        <label for="casteCategory">📂 Caste Category<span class="req">*</span></label>
+        <div class="field" data-type="select" data-ok="Category selected!" data-err="Please select caste category">
+          <select id="casteCategory">
+            <option value="">Select Category</option>
+            <option>General</option>
+            <option>OBC</option>
+            <option>SC</option>
+            <option>ST</option>
+            <option>VJ / DT (A)</option>
+            <option>NT (B)</option>
+            <option>NT (C)</option>
+            <option>NT (D)</option>
+            <option>SBC</option>
+            <option>EWS</option>
+          </select><span class="tick">✓</span>
+        </div>
+        <div class="msg"></div>
+      </div>
+    </div>
+
+    <!-- School details -->
+    <div class="section-title">🏫 Admission &amp; Previous School Details</div>
+    <div class="grid">
+      <div>
+        <label for="admDate">📆 Admission Date<span class="req">*</span></label>
+        <div class="field" data-type="admDate"><input type="date" id="admDate"><span class="tick">✓</span></div>
+        <div class="msg"></div>
+      </div>
+
+      <div>
+        <label for="schoolName">🏫 Existing School Name<span class="req">*</span></label>
+        <div class="field" data-type="schoolName"><input type="text" id="schoolName" placeholder="Enter previous school name"><span class="tick">✓</span></div>
+        <div class="msg"></div>
+      </div>
+
+      <div>
+        <label for="udise">🆔 Existing School UDISE<span class="req">*</span></label>
+        <div class="field" data-type="udise"><input type="text" id="udise" maxlength="11" inputmode="numeric" placeholder="11-digit UDISE code"><span class="tick">✓</span></div>
+        <div class="msg"></div>
+      </div>
+    </div>
+
+    <div class="submit-wrap">
+      <button type="submit" class="btn-primary">✈ SAVE STUDENT</button>
+      <button type="button" class="btn-reset" id="resetBtn">↺ CLEAR FORM</button>
+    </div>
+    <div class="success" id="success">✅ Student information saved successfully!</div>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById('studentForm');
+  const dobEl = document.getElementById('dob');
+  const admDateEl = document.getElementById('admDate');
+  const successEl = document.getElementById('success');
+
+  // FIX: use LOCAL date (toISOString gives UTC, which is "yesterday" in India before 5:30 AM)
+  function localToday() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
+  }
+  const today = localToday();
+
+  // FIX: allow Devanagari / any-language letters in names (\p{L} + \p{M} for matras)
+  const nameRe = /^[\p{L}\p{M} .'-]+$/u;
+
+  // Each rule returns [isValid, okMessage, errorMessage]
+  const rules = {
+    admNo:      v => [/^[A-Za-z0-9\/\-]{1,20}$/.test(v.trim()), 'Admission number looks good!', 'Enter admission number (letters, digits, / or - only)'],
+    name:       v => [v.trim().length >= 3 && nameRe.test(v.trim()), 'Looks good!', 'Enter full name (letters only, min 3 characters)'],
+    caste:      v => [v.trim().length >= 2 && nameRe.test(v.trim()), 'Caste entered!', 'Enter a valid caste name'],
+    schoolName: v => [v.trim().length >= 3, 'School name looks good!', 'Enter the existing school name'],
+    udise:      v => [/^\d{11}$/.test(v), 'UDISE code looks good!', 'UDISE code must be exactly 11 digits'],
+    dob: v => {
+      if (!v) return [false, '', 'Please select date of birth'];
+      const age = (Date.now() - new Date(v)) / (365.25 * 24 * 3600 * 1000);
+      return [age >= 3 && age <= 25, 'Date of birth confirmed!', 'Student age must be between 3 and 25 years'];
+    },
+    admDate: v => {
+      if (!v) return [false, '', 'Please select admission date'];
+      if (v > today) return [false, '', 'Admission date cannot be in the future'];
+      // NEW: admission cannot be before date of birth
+      if (dobEl.value && v < dobEl.value) return [false, '', 'Admission date cannot be before date of birth'];
+      return [true, 'Admission date confirmed!', ''];
+    }
+  };
+
+  function validate(el) {
+    const wrap = el.closest('.field');
+    const msg  = wrap.nextElementSibling;
+    const type = wrap.dataset.type;
+    let ok, okMsg, errMsg;
+
+    if (type === 'select') {
+      ok = el.value !== '';
+      okMsg = wrap.dataset.ok; errMsg = wrap.dataset.err;
+    } else {
+      [ok, okMsg, errMsg] = rules[type](el.value);
+    }
+    wrap.classList.toggle('valid', ok);
+    wrap.classList.toggle('invalid', !ok);
+    msg.textContent = ok ? okMsg : errMsg;
+    return ok;
+  }
+
+  const inputs = form.querySelectorAll('input, select');
+
+  // FIX: digits-only cleanup must run BEFORE validation, so register it first
+  document.getElementById('udise').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '');
+  });
+
+  inputs.forEach(el => {
+    const wrap = el.closest('.field');
+    const ev = el.tagName === 'SELECT' ? 'change' : 'input';
+
+    el.addEventListener(ev, () => {
+      validate(el);
+      successEl.style.display = 'none';           // FIX: hide old success message when editing again
+      if (el === dobEl && admDateEl.value) validate(admDateEl); // re-check admission date vs new DOB
+    });
+
+    // FIX: don't show red errors just for tabbing through an empty field
+    el.addEventListener('blur', () => {
+      if (el.value !== '' || wrap.classList.contains('valid') || wrap.classList.contains('invalid')) validate(el);
+    });
+  });
+
+  // No future dates
+  dobEl.max = today;
+  admDateEl.max = today;
+
+  function clearForm() {
+    form.reset();
+    form.querySelectorAll('.field').forEach(f => f.classList.remove('valid', 'invalid'));
+    form.querySelectorAll('.msg').forEach(m => m.textContent = '');
+  }
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    clearForm();
+    successEl.style.display = 'none';
+  });
+
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby9RgLon8ujTAKf44ZOwAGw4neqjs4__xg3dw4z1EZsg8MzNWcMsL2eopC1PsmV3cXwPQ/exec';
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    let allValid = true;
+    inputs.forEach(el => { if (!validate(el)) allValid = false; });
+
+    if (!allValid) {
+      form.querySelector('.invalid input, .invalid select')?.focus();
+      return;
+    }
+
+    if (!userPin) { showLock('Punha login kara.'); return; }
+    const data = Object.fromEntries([...inputs].map(el => [el.id, el.value.trim()]));
+    const btn = form.querySelector('.btn-primary');
+    btn.disabled = true;
+    btn.textContent = 'SAVING...';
+
+    try {
+      // No custom headers on purpose: avoids a CORS preflight that Apps Script cannot answer
+      const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ ...data, action: 'save', pin: userPin }) });
+      const out = await res.json();
+      if (out.result === 'denied' || out.result === 'locked') { showLock(out.message); throw new Error(out.message); }
+      if (out.result !== 'success') throw new Error(out.message || 'Unknown error');
+
+      successEl.style.display = 'block';
+      clearForm();
+    } catch (err) {
+      alert('Save jhale nahi: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✈ SAVE STUDENT';
+    }
+  });
+
+  // ---------- PIN login ----------
+  let userPin = '';
+  const lockEl = document.getElementById('lock');
+  const pinInput = document.getElementById('pinInput');
+  const lockMsg = document.getElementById('lockMsg');
+  const loginBtn = document.getElementById('loginBtn');
+
+  function showLock(m) {
+    userPin = ''; pinInput.value = '';
+    lockMsg.textContent = m || '';
+    lockEl.style.display = 'flex';
+    pinInput.focus();
+  }
+
+  async function login() {
+    const pin = pinInput.value.trim();
+    if (!pin) { lockMsg.textContent = 'PIN taka.'; return; }
+    loginBtn.disabled = true; loginBtn.textContent = 'CHECKING...';
+    try {
+      const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'login', pin }) });
+      const out = await res.json();
+      if (out.result === 'success') {
+        userPin = pin; lockEl.style.display = 'none';
+        pinInput.value = ''; lockMsg.textContent = '';
+      } else {
+        lockMsg.textContent = out.message || 'Login jhale nahi';
+      }
+    } catch (err) {
+      lockMsg.textContent = 'Internet kiva server problem. Punha prayatn kara.';
+    } finally {
+      loginBtn.disabled = false; loginBtn.textContent = '🔓 LOGIN';
+    }
+  }
+  loginBtn.addEventListener('click', login);
+  pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+  // ---------- Installable app ----------
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
